@@ -1,6 +1,6 @@
 // ✏️ EDIT THIS FILE to change names, messages and photos. No other file needs touching.
 window.CONFIG = {
-  name: "Riddhi",                         // her name
+  name: "MG",                         // her name
   title: "Happy Birthday",                // big intro title
   music: "music/birthday.mp3",            // put your song here (optional)
 
@@ -14,7 +14,7 @@ window.CONFIG = {
   },
 
   // The message card
-  messageTitle: "My Dearest Riddhi,",
+  messageTitle: "My Love MG,",
   message: "Today isn't just a date on the calendar; it's a celebration of the light you bring into my life. Every moment with you is like a frame from a beautiful movie, and I'm so lucky to be your co-star. May this year be filled with as much magic as you give to everyone around you.",
   memoriesButton: "OUR MEMORIES",
 
