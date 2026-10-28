@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Birthday 🎂</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#07040a;color:#fff;font-family:'Montserrat',sans-serif}
+body{background:radial-gradient(ellipse at 50% 30%,#2a0a14 0%,#07040a 70%);transition:background 1.5s}
+body.bright{background:radial-gradient(ellipse at 50% 30%,#4a0f1f 0%,#0b0509 75%)}
+#lights{position:fixed;top:0;left:0;width:100%;height:60px;display:flex;justify-content:space-around;opacity:0;transition:opacity 1.5s;z-index:5;pointer-events:none}
+#lights i{width:9px;height:9px;border-radius:50%;background:#ffe9a8;box-shadow:0 0 12px 4px #ffd36b;margin-top:calc(8px + 10px*var(--s));animation:tw 2s infinite alternate}
+@keyframes tw{to{opacity:.45}}
+.stage{position:fixed;inset:0;display:grid;place-items:center;padding:20px}
+.step{position:absolute;text-align:center;opacity:0;pointer-events:none;transform:translateY(14px);transition:.7s}
+.step.active{opacity:1;pointer-events:auto;transform:none}
+.glass{background:rgba(255,255,255,.07);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:28px 34px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.script{font-family:'Dancing Script',cursive;color:#ff4d5e;text-shadow:0 0 18px rgba(255,60,80,.5)}
+h1.script{font-size:clamp(2.4rem,9vw,4rem);margin-bottom:12px}
+h2{font-size:1.05rem;margin-bottom:18px}
+.btn{cursor:pointer;border:1.5px solid #ff4d5e;background:rgba(255,77,94,.08);color:#fff;font:700 .8rem 'Montserrat';letter-spacing:.06em;padding:12px 26px;border-radius:40px;transition:.3s}
+.btn:hover{background:#ff4d5e;box-shadow:0 0 24px #ff4d5e}
+.btn.glow{background:linear-gradient(90deg,#ff5a4d,#ff3d6e);box-shadow:0 0 28px rgba(255,70,90,.7)}
+#msg{max-width:480px;font-weight:500;font-size:.85rem;line-height:1.7}
+#msg p{margin:14px 0 20px}
+#gallery{width:min(94vw,820px)}
+#gallery h1{margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ph{position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#3a1020,#1a0a14);border:1px solid rgba(255,255,255,.12);transition:.4s}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph:hover{transform:translateY(-4px) scale(1.02);border-color:#ff4d5e;box-shadow:0 0 28px rgba(255,77,94,.4)}
+.ph span{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:12px;font:700 1.15rem 'Dancing Script';background:rgba(0,0,0,.65);opacity:0;transition:.4s}
+.ph:hover span,.ph:active span{opacity:1}
+.fx{position:fixed;pointer-events:none;z-index:3}
+.heart{animation:rise linear forwards;color:#ff4d5e;opacity:.8}
+@keyframes rise{to{transform:translateY(-110vh) rotate(40deg);opacity:0}}
+.balloon{width:34px;height:44px;border-radius:50% 50% 48% 48%;animation:rise linear forwards}
+.balloon:after{content:"";position:absolute;left:50%;top:100%;width:1px;height:40px;background:#ffffff66}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="lights"></div>
+<div class="stage">
+  <div class="step glass active" id="s-intro"><h1 class="script"></h1><h2></h2><button class="btn"></button></div>
+  <div class="step glass" id="s-ready"><h2></h2><button class="btn"></button></div>
+  <div class="step" id="s-music"><h2></h2><button class="btn glow"></button></div>
+  <div class="step" id="s-balloon"><h2></h2><button class="btn glow"></button></div>
+  <div class="step" id="s-message"><h2></h2><button class="btn glow"></button></div>
+  <div class="step glass" id="s-card"><div id="msg"><h1 class="script"></h1><p></p><button class="btn"></button></div></div>
+  <div class="step" id="gallery"><h1 class="script"></h1><div class="grid"></div></div>
+</div>
+<audio id="audio" loop></audio>
+<script src="config.js"></script>
+<script>
+const C = window.CONFIG, $ = id => document.getElementById(id);
+const order = ['intro','ready','music','balloon','message','card','gallery'];
+const show = id => { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); $('s-'+id)?.classList.add('active'); if(id==='gallery') $('gallery').classList.add('active'); };
+const confetti = (cls, html, n, dur) => { for(let i=0;i<n;i++) setTimeout(()=>{
+  const e=document.createElement('div'); e.className='fx '+cls; if(html) e.textContent=html;
+  e.style.left=Math.random()*100+'vw'; e.style.top='100vh'; e.style.fontSize=(14+Math.random()*22)+'px';
+  e.style.animationDuration=(dur+Math.random()*4)+'s';
+  if(cls==='balloon') e.style.background=['#ff5d6c','#ffc83d','#6ec1ff','#b57bff','#ff8fd0','#6be39a'][i%6];
+  document.body.appendChild(e); setTimeout(()=>e.remove(),(dur+5)*1000); }, i*(cls==='balloon'?180:0)); };
+
+// Text from config
+document.title = `${C.title} ${C.name} 🎂`;
+$('s-intro').querySelector('h1').textContent = `${C.title} ${C.name}`;
+[['intro','intro'],['ready','ready'],['music','music'],['balloon','balloon'],['message','message']].forEach(([id,key])=>{
+  const s=$('s-'+id), [h,b]=C.steps[key]; (s.querySelector('h2')).textContent=h; s.querySelector('button').textContent=b; });
+const card=$('s-card'); card.querySelector('h1').textContent=C.messageTitle; card.querySelector('p').textContent=C.message; card.querySelector('button').textContent=C.memoriesButton;
+$('gallery').querySelector('h1').textContent=C.galleryTitle;
+$('gallery').querySelector('.grid').innerHTML = C.photos.map(p=>`<div class="ph"><img src="${p.file}" alt="" onerror="this.remove()"><span>${p.caption}</span></div>`).join('');
+$('audio').src = C.music;
+for(let i=0;i<28;i++){const l=document.createElement('i'); l.style.setProperty('--s',Math.sin(i/28*Math.PI*6)); $('lights').appendChild(l);}
+
+// Flow
+const go = id => show(id);
+$('s-intro').querySelector('button').onclick = () => go('ready');
+$('s-ready').querySelector('button').onclick = () => { $('lights').style.opacity=1; document.body.classList.add('bright'); go('music'); };
+$('s-music').querySelector('button').onclick = () => { $('audio').play().catch(()=>{}); go('balloon'); };
+$('s-balloon').querySelector('button').onclick = () => { confetti('balloon','',22,9); go('message'); };
+$('s-message').querySelector('button').onclick = () => go('card');
+card.querySelector('button').onclick = () => go('gallery');
+setInterval(()=>confetti('heart','❤',1,7), 700);
+</script>
+</body>
+</html>
