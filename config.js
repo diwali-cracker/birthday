@@ -40,8 +40,8 @@ Happy Birthday, my favourite person, my bby, my love. I love you more than words
     { file: "images/1.jpg", caption: "You make my world beautiful" },
     { file: "images/2.jpg", caption: "Our memories are forever" },
     { file: "images/3.jpg", caption: "That smile ❤" },
-    { file: "images/4.jpg", caption: "Pure magic" },
-    { file: "images/5.jpg", caption: "My favourite person" },
+    { file: "images/4.jpg", caption: "Your fan" },
+    { file: "images/5.jpg", caption: "Sundar" },
     { file: "images/6.jpg", caption: "Always and forever" }
   ]
 };
