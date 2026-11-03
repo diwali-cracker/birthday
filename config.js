@@ -26,7 +26,7 @@ window.CONFIG = {
 
   // The message card
   messageTitle: "My Dearest MG,",
-  message: "First of all, bby, A very happy birthday to you! ❤️🎂 And I love you so much, bby. I want you to always remember that, no matter what happens.
+  message: `First of all, bby, A very happy birthday to you! ❤️🎂 And I love you so much, bby. I want you to always remember that, no matter what happens.
 
 I don't know if I can ever put into words how much you mean to me.
 
@@ -42,7 +42,7 @@ Thank you for being a part of my story, for all the memories we've created and f
 
 I may not always be the perfect boyfriend, but my love for you is real, bby. And I hope I keep getting chances to make you feel loved, respected, special and happy.
 
-Happy Birthday, my favourite person, my bby, my love. I love you more than words can ever say. ❤️🫶🏻.",
+Happy Birthday, my favourite person MG, my bby, my love. I love you more than words can ever say. ❤️🫶🏻.`,
   memoriesButton: "OUR MEMORIES",
 
   // Gallery: put photos in the /images folder and list them here (6 looks best, add as many as you like)
