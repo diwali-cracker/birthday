@@ -25,12 +25,11 @@ h2{font-size:1.05rem;margin-bottom:18px}
 .btn.glow{background:linear-gradient(90deg,#ff5a4d,#ff3d6e);box-shadow:0 0 28px rgba(255,70,90,.7)}
 #msg{width:min(calc(100vw - 100px),540px);font-weight:500;font-size:.85rem;line-height:1.7}
 #msg p{margin:14px 0 20px;white-space:pre-line;text-align:left;max-height:48vh;overflow-y:auto;padding-right:8px}
-#gallery{width:min(94vw,720px);max-height:calc(100vh - 70px);overflow-y:auto;padding:0 4px 24px;scrollbar-width:thin}
+#gallery{width:min(94vw,820px)}
 #gallery h1{margin-bottom:22px}
-.grid{display:flex;gap:14px;align-items:flex-start}
-.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
-.ph{position:relative;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#3a1020,#1a0a14);border:1px solid rgba(255,255,255,.12);transition:.4s}
-.ph img{display:block;width:100%;height:auto}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ph{position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#3a1020,#1a0a14);border:1px solid rgba(255,255,255,.12);transition:.4s}
+.ph img{width:100%;height:100%;object-fit:cover}
 .ph:hover{transform:translateY(-4px) scale(1.02);border-color:#ff4d5e;box-shadow:0 0 28px rgba(255,77,94,.4)}
 .ph span{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:12px;font:700 1.15rem 'Dancing Script';background:rgba(0,0,0,.65);opacity:0;transition:.4s}
 .ph:hover span,.ph:active span{opacity:1}
@@ -48,6 +47,7 @@ h2{font-size:1.05rem;margin-bottom:18px}
 #tree-btn.on{opacity:1;pointer-events:auto}
 @media(max-width:700px){#tree-text{max-width:90vw;font-size:.85rem;top:4vh}}
 
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -82,17 +82,7 @@ $('s-intro').querySelector('h1').textContent = `${C.title} ${C.name}`;
   const s=$('s-'+id), [h,b]=C.steps[key]; (s.querySelector('h2')).textContent=h; s.querySelector('button').textContent=b; });
 const card=$('s-card'); card.querySelector('h1').textContent=C.messageTitle; card.querySelector('p').textContent=C.message; card.querySelector('button').textContent=C.memoriesButton;
 $('gallery').querySelector('h1').textContent=C.galleryTitle;
-// Gallery: every photo keeps its own proportions (landscape stays wide, portrait stays tall)
-(function buildGallery(){
-  const grid=$('gallery').querySelector('.grid'), n=innerWidth>560?3:2;
-  Promise.all(C.photos.map(p=>new Promise(res=>{ const im=new Image(); im.onload=()=>res(im.naturalHeight/im.naturalWidth); im.onerror=()=>res(0); im.src=p.file; }))).then(r=>{
-    grid.innerHTML=''; const cols=Array.from({length:n},()=>{ const d=document.createElement('div'); d.className='col'; grid.appendChild(d); return {d,h:0}; });
-    C.photos.forEach((p,i)=>{ const c=cols.reduce((a,b)=>b.h<a.h?b:a), el=document.createElement('div'); el.className='ph';
-      if(r[i]) el.innerHTML=`<img src="${p.file}" alt=""><span></span>`; else { el.style.aspectRatio='3/4'; el.innerHTML='<span></span>'; }
-      el.querySelector('span').textContent=p.caption; if(!r[i]) el.querySelector('span').style.opacity=1;
-      c.d.appendChild(el); c.h+=r[i]||1.33; });
-  });
-})();
+$('gallery').querySelector('.grid').innerHTML = C.photos.map(p=>`<div class="ph"><img src="${p.file}" alt="" onerror="this.remove()"><span>${p.caption}</span></div>`).join('');
 $('audio').src = C.music;
 for(let i=0;i<28;i++){const l=document.createElement('i'); l.style.setProperty('--s',Math.sin(i/28*Math.PI*6)); $('lights').appendChild(l);}
 
