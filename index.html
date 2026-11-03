@@ -29,7 +29,8 @@ h2{font-size:1.05rem;margin-bottom:18px}
 #gallery h1{margin-bottom:22px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .ph{position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#3a1020,#1a0a14);border:1px solid rgba(255,255,255,.12);transition:.4s}
-.ph img{width:100%;height:100%;object-fit:cover}
+.ph .fgl,.ph .bgl{position:absolute;inset:0;background-repeat:no-repeat}
+.ph .bgl{inset:-12%;background-size:cover;background-position:center;filter:blur(18px) brightness(.55)}
 .ph:hover{transform:translateY(-4px) scale(1.02);border-color:#ff4d5e;box-shadow:0 0 28px rgba(255,77,94,.4)}
 .ph span{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:12px;font:700 1.15rem 'Dancing Script';background:rgba(0,0,0,.65);opacity:0;transition:.4s}
 .ph:hover span,.ph:active span{opacity:1}
@@ -82,7 +83,23 @@ $('s-intro').querySelector('h1').textContent = `${C.title} ${C.name}`;
   const s=$('s-'+id), [h,b]=C.steps[key]; (s.querySelector('h2')).textContent=h; s.querySelector('button').textContent=b; });
 const card=$('s-card'); card.querySelector('h1').textContent=C.messageTitle; card.querySelector('p').textContent=C.message; card.querySelector('button').textContent=C.memoriesButton;
 $('gallery').querySelector('h1').textContent=C.galleryTitle;
-$('gallery').querySelector('.grid').innerHTML = C.photos.map(p=>`<div class="ph"><img src="${p.file}" alt="" onerror="this.remove()"><span>${p.caption}</span></div>`).join('');
+// Gallery: optional per-photo zoom (1 = fill the box, <1 zoom out, >1 zoom in) and focus x/y in % (50 = centre)
+(function buildGallery(){
+  const grid=$('gallery').querySelector('.grid'); grid.innerHTML='';
+  C.photos.forEach(p=>{
+    const el=document.createElement('div'); el.className='ph'; grid.appendChild(el);
+    const cap=document.createElement('span'); cap.textContent=p.caption; el.appendChild(cap);
+    const im=new Image();
+    im.onload=()=>{
+      const z=p.zoom||1, x=p.x??50, y=p.y??50, r=im.naturalHeight/im.naturalWidth, cover=Math.max(1,(4/3)/r)*100;
+      const url='url("'+p.file+'")';
+      if(z<1){ const b=document.createElement('div'); b.className='bgl'; b.style.backgroundImage=url; el.insertBefore(b,cap); }
+      const f=document.createElement('div'); f.className='fgl'; f.style.backgroundImage=url;
+      f.style.backgroundSize=(cover*z)+'% auto'; f.style.backgroundPosition=x+'% '+y+'%'; el.insertBefore(f,cap);
+    };
+    im.src=p.file;
+  });
+})();
 $('audio').src = C.music;
 for(let i=0;i<28;i++){const l=document.createElement('i'); l.style.setProperty('--s',Math.sin(i/28*Math.PI*6)); $('lights').appendChild(l);}
 
