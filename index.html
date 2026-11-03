@@ -38,6 +38,14 @@ h2{font-size:1.05rem;margin-bottom:18px}
 @keyframes rise{to{transform:translateY(-110vh) rotate(40deg);opacity:0}}
 .balloon{width:34px;height:44px;border-radius:50% 50% 48% 48%;animation:rise linear forwards}
 .balloon:after{content:"";position:absolute;left:50%;top:100%;width:1px;height:40px;background:#ffffff66}
+#s-tree{position:fixed;inset:0;width:100%;height:100%;background:#000;text-align:left;transform:none}
+#tree-canvas{position:absolute;inset:0;width:100%;height:100%}
+#tree-text{position:absolute;left:5vw;top:8vh;max-width:min(40vw,340px);font-size:.95rem;line-height:1.75;font-weight:500;z-index:2}
+#tree-text .cur{animation:tw .6s infinite alternate}
+#tree-since{position:absolute;left:0;right:0;bottom:15vh;text-align:center;font-size:.8rem;color:#ffb3c0;z-index:2}
+#tree-btn{position:absolute;bottom:6vh;left:50%;translate:-50% 0;opacity:0;pointer-events:none;transition:opacity 1s;z-index:2}
+#tree-btn.on{opacity:1;pointer-events:auto}
+@media(max-width:700px){#tree-text{max-width:90vw;font-size:.85rem;top:4vh}}
 @media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -45,6 +53,7 @@ h2{font-size:1.05rem;margin-bottom:18px}
 <div id="lights"></div>
 <div class="stage">
   <div class="step glass active" id="s-intro"><h1 class="script"></h1><h2></h2><button class="btn"></button></div>
+  <div class="step" id="s-tree"><canvas id="tree-canvas"></canvas><div id="tree-text"></div><div id="tree-since"></div><button class="btn glow" id="tree-btn"></button></div>
   <div class="step glass" id="s-ready"><h2></h2><button class="btn"></button></div>
   <div class="step" id="s-music"><h2></h2><button class="btn glow"></button></div>
   <div class="step" id="s-balloon"><h2></h2><button class="btn glow"></button></div>
@@ -78,13 +87,55 @@ for(let i=0;i<28;i++){const l=document.createElement('i'); l.style.setProperty('
 
 // Flow
 const go = id => show(id);
-$('s-intro').querySelector('button').onclick = () => go('ready');
+$('s-intro').querySelector('button').onclick = () => { go('tree'); requestAnimationFrame(startTree); };
+$('tree-btn').onclick = () => { stopTree(); go('ready'); };
 $('s-ready').querySelector('button').onclick = () => { $('lights').style.opacity=1; document.body.classList.add('bright'); go('music'); };
 $('s-music').querySelector('button').onclick = () => { $('audio').play().catch(()=>{}); go('balloon'); };
 $('s-balloon').querySelector('button').onclick = () => { confetti('balloon','',22,9); go('message'); };
 $('s-message').querySelector('button').onclick = () => go('card');
 card.querySelector('button').onclick = () => go('gallery');
 setInterval(()=>confetti('heart','❤',1,7), 700);
+// ---- Slide 2: growing heart tree ----
+const T = Object.assign({
+  lines: ["Hey you 💕","Happy Birthday 🎈","May God bless you 🍀","And give u many happiness 💞","Just saying... you're pretty awesome 💗","Sending good vibes and maybe a wink 😉","Hope u have a great day today 💖"],
+  button: "CONTINUE ❤", since: "", sinceText: "Together for"
+}, C.tree || {});
+let raf=0, typer=0, sinceTimer=0;
+function stopTree(){ cancelAnimationFrame(raf); clearInterval(typer); clearInterval(sinceTimer); }
+function startTree(){
+  stopTree();
+  const cv=$('tree-canvas'), ctx=cv.getContext('2d'), dpr=Math.min(devicePixelRatio||1,2);
+  const w=cv.clientWidth, h=cv.clientHeight; cv.width=w*dpr; cv.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  const wide=w>700, cx=wide?w*.64:w*.5, gy=h*(wide?.9:.92), H=h*(wide?.24:.2), topY=gy-H;
+  const S=Math.min(w*(wide?.5:.95),h*.62)/34, GROW=.45, SEED=1.2;
+  const segs=[]; (function g(x,y,len,a,wd,d){ if(d>6) return; const x2=x+Math.sin(a)*len,y2=y-Math.cos(a)*len; segs.push({x,y,x2,y2,wd,d});
+    const L=len*(d===0?.4:.66); g(x2,y2,L,a-.35-Math.random()*.2,wd*.7,d+1); g(x2,y2,L,a+.35+Math.random()*.2,wd*.7,d+1); })(cx,gy,H,0,Math.max(6,S*1.1),0);
+  const cy=topY-16*S, bloom=SEED+7*GROW, cols=['#ff4d6d','#ff6f91','#ff9671','#ffc75f','#f9f871','#ff7eb6','#ff3d81'];
+  const hearts=Array.from({length:520},()=>{ const t=Math.random()*6.283, r=Math.pow(Math.random(),.4);
+    const hx=16*Math.sin(t)**3, hy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+    return {x:cx+hx*r*S, y:cy-hy*r*S, s:S*(.55+Math.random()*.5), rot:(Math.random()-.5)*1.2, c:cols[Math.random()*cols.length|0], b:bloom+Math.random()*3.5, ph:Math.random()*6}; });
+  const fall=[];
+  const heart=(x,y,s,rot,c)=>{ ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.scale(s,s); ctx.beginPath(); ctx.moveTo(0,1);
+    ctx.bezierCurveTo(-1.3,0,-.7,-1.1,0,-.4); ctx.bezierCurveTo(.7,-1.1,1.3,0,0,1); ctx.fillStyle=c; ctx.fill(); ctx.restore(); };
+  const cl=v=>Math.max(0,Math.min(1,v)); let t0=performance.now(), typed=false;
+  $('tree-text').textContent=''; $('tree-btn').classList.remove('on'); $('tree-btn').textContent=T.button;
+  if(T.since){ const el=$('tree-since'), up=()=>{ let d=Math.max(0,(Date.now()-new Date(T.since))/1000|0);
+      el.textContent=`${T.sinceText} ${d/86400|0} days ${d%86400/3600|0} hours ${d%3600/60|0} minutes ${d%60} seconds`; }; up(); sinceTimer=setInterval(up,1000); }
+  (function frame(now){
+    const t=(now-t0)/1000; ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.beginPath(); const gl=cl(t/1.2)*Math.min(cx,w-cx)*.95; ctx.moveTo(cx-gl,gy); ctx.lineTo(cx+gl,gy); ctx.stroke();
+    if(t<SEED){ const e=cl(t/SEED); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx,gy-(1-e*e)*h*.3,3,0,6.283); ctx.fill(); }
+    ctx.strokeStyle='#f7b2c4'; ctx.lineCap='round';
+    for(const g of segs){ const p=cl((t-SEED-g.d*GROW)/GROW); if(p<=0) continue; ctx.lineWidth=g.wd; ctx.beginPath(); ctx.moveTo(g.x,g.y); ctx.lineTo(g.x+(g.x2-g.x)*p,g.y+(g.y2-g.y)*p); ctx.stroke(); }
+    for(const k of hearts){ const p=cl(t-k.b); if(p>0) heart(k.x,k.y,k.s*p,k.rot+Math.sin(t*1.5+k.ph)*.06,k.c); }
+    if(t>bloom+3.5 && Math.random()<.35){ const k=hearts[Math.random()*hearts.length|0]; fall.push({x:k.x,y:k.y,vx:(Math.random()-.3)*.6,vy:.6+Math.random()*.8,s:k.s*.8,rot:k.rot,c:k.c}); }
+    for(let i=fall.length-1;i>=0;i--){ const f=fall[i]; f.x+=f.vx+Math.sin(t*2+i)*.3; f.y+=f.vy; f.rot+=.02; heart(f.x,f.y,f.s,f.rot,f.c); if(f.y>gy) fall.splice(i,1); }
+    if(!typed && t>bloom+.5){ typed=true; const txt=Array.from(T.lines.join('\n')); let i=0;
+      typer=setInterval(()=>{ i++; $('tree-text').innerHTML=txt.slice(0,i).join('').replace(/\n/g,'<br>')+'<span class="cur">_</span>'; if(i>=txt.length){ clearInterval(typer); $('tree-btn').classList.add('on'); } },70); }
+    raf=requestAnimationFrame(frame);
+  })(t0);
+}
+
 </script>
 </body>
 </html>
