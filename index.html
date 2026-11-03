@@ -62,7 +62,7 @@ h2{font-size:1.05rem;margin-bottom:18px}
   <div class="step" id="gallery"><h1 class="script"></h1><div class="grid"></div></div>
 </div>
 <audio id="audio" loop></audio>
-<script src="config.js"></script>
+<script>document.write('<script src="config.js?t='+Date.now()+'"><\/script>')</script>
 <script>
 const C = window.CONFIG, $ = id => document.getElementById(id);
 const order = ['intro','ready','music','balloon','message','card','gallery'];
