@@ -25,7 +25,7 @@ window.CONFIG = {
   },
 
   // The message card
-  messageTitle: "My Dearest MG,",
+  messageTitle: "My Bby MG,",
   message: `First of all, bby, A very happy birthday to you! ❤️🎂 And I love you so much, bby. I want you to always remember that, no matter what happens.
 
 I don't know if I can ever put into words how much you mean to me.
