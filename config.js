@@ -16,8 +16,8 @@ window.CONFIG = {
   // Slide 2: the growing heart tree (optional - delete this block to use the defaults)
   tree: {
     lines: [
-      "Hey you 💕", "Happy Birthday 🎈", "May God bless you 🍀", "And give u many happiness 💞",
-      "Just saying... you're pretty awesome 💗", "Sending good vibes and maybe a wink 😉", "Hope u have a great day today 💖"
+      "Hey bby 💕", "Happy Birthday 🎈", "May God bless you 🍀", "And give u many happiness 💞",
+      "Just saying... you're very very pretty bby 💗", "Sending you a lot of birthday wishes 😉", "Enjoy bby... Its your day  💖"
     ],
     button: "CONTINUE ❤",
     since: "",                 // optional, e.g. "2024-02-14T00:00:00" shows a live "together for X days" counter
