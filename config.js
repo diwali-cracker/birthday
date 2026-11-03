@@ -51,8 +51,8 @@ Happy Birthday, my favourite person MG, my bby, my love. I love you more than wo
     { file: "images/1.jpeg", caption: "You make my world beautiful" },
     { file: "images/2.jpeg", caption: "Our memories are forever" },
     { file: "images/3.jpeg", caption: "That smile ❤" },
-    { file: "images/4.jpeg", caption: "Pure magic" },
-    { file: "images/5.jpeg", caption: "My favourite person" },
+    { file: "images/4.jpeg", caption: "Your Fan" },
+    { file: "images/5.jpeg", caption: "A Sunflower" },
     { file: "images/6.jpeg", caption: "Always and forever" }
   ]
 };
