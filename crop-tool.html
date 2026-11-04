@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo Crop Checker</title>
+<style>
+:root{--bg:#0b0509;--card:#1a0d14;--line:#4a2332;--rose:#ff4d5e;--ink:#f6e9ec;--mute:#b9949d}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(ellipse at 50% 0,#3a0f1d,var(--bg) 70%) fixed;color:var(--ink);font:14px/1.5 system-ui,Segoe UI,sans-serif;min-height:100vh;padding:22px}
+h1{font:700 1.5rem Georgia,serif;color:var(--rose);margin-bottom:4px}
+.sub{color:var(--mute);margin-bottom:18px}
+.drop{display:block;border:1.5px dashed var(--line);border-radius:14px;padding:18px;text-align:center;cursor:pointer;color:var(--mute);margin-bottom:18px}
+.drop:hover,.drop.on{border-color:var(--rose);color:var(--ink)}
+.app{display:none;gap:22px;flex-wrap:wrap;align-items:flex-start}
+.thumbs{display:flex;flex-direction:column;gap:8px;max-height:78vh;overflow:auto;padding-right:4px}
+.th{width:64px;height:64px;border-radius:10px;border:2px solid transparent;background-size:cover;background-position:center;cursor:pointer;position:relative;flex:none}
+.th.sel{border-color:var(--rose)}
+.th b{position:absolute;left:3px;top:3px;background:#000a;border-radius:6px;padding:0 6px;font-size:11px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:8px}
+.tile{position:relative;width:min(300px,78vw);aspect-ratio:3/4;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#000;cursor:grab;touch-action:none;box-shadow:0 18px 50px #000a}
+.tile:active{cursor:grabbing}
+.tile .fg,.tile .bg{position:absolute;background-repeat:no-repeat}
+.tile .bg{inset:-12%;background-size:cover;background-position:center;filter:blur(18px) brightness(.55)}
+.tile .fg{inset:0}
+.hint{color:var(--mute);font-size:12px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;width:min(420px,100%)}
+.row{display:grid;grid-template-columns:62px 1fr 56px;gap:10px;align-items:center;margin:8px 0}
+input[type=range]{width:100%;accent-color:var(--rose)}
+input[type=text]{width:100%;background:#0006;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:7px 9px}
+.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+.info{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:10px 0 12px;color:var(--mute)}
+.info span:nth-child(even){color:var(--ink)}
+pre{background:#0008;border:1px solid var(--line);border-radius:10px;padding:10px;white-space:pre-wrap;word-break:break-all;font:12px/1.5 ui-monospace,Consolas,monospace;margin:8px 0}
+button{background:transparent;color:var(--ink);border:1.5px solid var(--rose);border-radius:30px;padding:8px 16px;cursor:pointer;font-weight:600;margin:0 6px 6px 0}
+button:hover{background:var(--rose)}
+.warn{color:#ffc75f;font-size:12px}
+.sel2{background:#0006;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:7px 9px;width:100%}
+.dims{width:100%;border-collapse:collapse;margin-top:22px;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:none}
+.dims th,.dims td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line)}
+.dims th{color:var(--mute);font-weight:600}
+.dims tr.cur td{background:#ff4d5e22}
+.dims tbody tr{cursor:pointer}
+.ok{color:#7ee2a8}.bad{color:#ffc75f}
+.tile{aspect-ratio:3/4}
+</style>
+</head>
+<body>
+<h1>Photo Crop Checker</h1>
+<p class="sub">Shows each photo in a frame with exactly the shape of your gallery boxes (3:4). Drag to move, scroll to zoom, then copy the numbers into <b>config.js</b>.</p>
+
+<label class="drop" id="drop">Click here, or drop your photos (select all 6 at once)
+  <input id="files" type="file" accept="image/*" multiple hidden>
+</label>
+
+<div class="app" id="app">
+  <div class="thumbs" id="thumbs"></div>
+  <div class="stage">
+    <div class="tile" id="tile"></div>
+    <div class="hint">Drag the photo to move it &middot; mouse wheel to zoom</div>
+  </div>
+  <div class="panel">
+    <div class="row" style="grid-template-columns:62px 1fr 90px"><span>Frame</span>
+      <select id="shape" class="sel2"><option value="1.3333">3 : 4 portrait (gallery)</option><option value="1">1 : 1 square</option><option value="0.75">4 : 3 landscape</option><option value="1.7778">9 : 16 tall</option><option value="0.5625">16 : 9 wide</option></select>
+      <input id="ew" type="text" value="900" title="Export width in px"></div>
+    <div class="hint" style="margin:-2px 0 8px">Frame shape &amp; export width in px (your website boxes are 3 : 4).</div>
+    <div class="row"><span>Zoom</span><input id="z" type="range" min="0.5" max="3" step="0.01"><span class="num" id="zv"></span></div>
+    <div class="row"><span>Left–Right</span><input id="x" type="range" min="0" max="100" step="1"><span class="num" id="xv"></span></div>
+    <div class="row"><span>Up–Down</span><input id="y" type="range" min="0" max="100" step="1"><span class="num" id="yv"></span></div>
+    <div class="info" id="info"></div>
+    <div class="row" style="grid-template-columns:62px 1fr"><span>Caption</span><input id="cap" type="text"></div>
+    <div class="hint">Paste this line into the <b>photos</b> list in config.js:</div>
+    <pre id="line"></pre>
+    <button id="copy">Copy this line</button>
+    <button id="copyAll">Copy all photos</button>
+    <button id="reset">Reset</button>
+    <button id="dl">Download cropped JPG</button>
+    <p class="hint" style="margin-top:6px">If you upload a downloaded cropped JPG, use <b>zoom: 1</b> (remove zoom/x/y) for that photo.</p>
+  </div>
+</div>
+<table class="dims" id="dims"><thead><tr><th>#</th><th>File</th><th>Size (px)</th><th>Shape</th><th>File size</th><th>Check for this frame</th></tr></thead><tbody></tbody></table>
+
+<script>
+let R = 4/3, EW = 900; const caps = ["You make my world beautiful","Our memories are forever","That smile ❤","Pure magic","My favourite person","Always and forever"];
+let items = [], cur = 0;
+const $ = id => document.getElementById(id), tile = $('tile');
+
+function load(list){
+  const files = [...list].filter(f => f.type.startsWith('image/')).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  Promise.all(files.map((f,i)=>new Promise(res=>{
+    const url = URL.createObjectURL(f), im = new Image();
+    im.onload = () => res({kb:f.size/1024,name:f.name, url, im, w:im.naturalWidth, h:im.naturalHeight, z:1, x:50, y:50, cap:caps[i]||''});
+    im.src = url;
+  }))).then(r => { items = r; cur = 0; $('app').style.display='flex'; drawThumbs(); render(); });
+}
+$('files').onchange = e => load(e.target.files);
+$('drop').ondragover = e => { e.preventDefault(); $('drop').classList.add('on'); };
+$('drop').ondragleave = () => $('drop').classList.remove('on');
+$('drop').ondrop = e => { e.preventDefault(); $('drop').classList.remove('on'); load(e.dataTransfer.files); };
+
+function drawThumbs(){
+  $('thumbs').innerHTML = '';
+  items.forEach((it,i)=>{ const d=document.createElement('div'); d.className='th'+(i===cur?' sel':''); d.style.backgroundImage=`url("${it.url}")`;
+    d.innerHTML=`<b>${i+1}</b>`; d.onclick=()=>{cur=i; drawThumbs(); render();}; $('thumbs').appendChild(d); });
+  renderTable();
+}
+function check(it){
+  const fr = 1/R, ar = it.w/it.h, visW = Math.min(it.w, it.h/R), diff = Math.abs(ar/fr-1);
+  const a = diff<.03 ? 'Shape matches' : (ar>fr ? 'Wider – sides cut' : 'Taller – top/bottom cut');
+  return visW < EW ? `<span class="bad">${a} · small (soft at ${EW}px)</span>` : `<span class="ok">${a} · sharp enough</span>`;
+}
+function renderTable(){
+  const t = $('dims'); t.style.display = items.length ? 'table' : 'none';
+  t.querySelector('tbody').innerHTML = items.map((it,i)=>`<tr class="${i===cur?'cur':''}" onclick="cur=${i};drawThumbs();render()"><td>${i+1}</td><td>${it.name}</td>
+    <td><b>${it.w} × ${it.h}</b></td><td>${it.w>it.h*1.02?'Landscape':it.h>it.w*1.02?'Portrait':'Square'} (${(it.w/it.h).toFixed(2)} : 1)</td><td>${it.kb>=1024?(it.kb/1024).toFixed(1)+' MB':Math.round(it.kb)+' KB'}</td><td>${check(it)}</td></tr>`).join('');
+}
+function geom(it){
+  const W = tile.clientWidth, H = W*R, r = it.h/it.w, cover = Math.max(1, R/r), Wd = W*cover*it.z, Hd = Wd*r;
+  return {W,H,Wd,Hd, ox:(W-Wd)*it.x/100, oy:(H-Hd)*it.y/100};
+}
+function render(){
+  const it = items[cur]; if(!it) return; tile.style.aspectRatio = `1 / ${R}`; const g = geom(it);
+  tile.innerHTML = (it.z<1 ? `<div class="bg" style="background-image:url('${it.url}')"></div>` : '') +
+    `<div class="fg" style="background-image:url('${it.url}');background-size:${g.Wd}px ${g.Hd}px;background-position:${g.ox}px ${g.oy}px"></div>`;
+  $('z').value=it.z; $('x').value=it.x; $('y').value=it.y;
+  $('zv').textContent=it.z.toFixed(2); $('xv').textContent=Math.round(it.x); $('yv').textContent=Math.round(it.y);
+  $('cap').value=it.cap;
+  const vw = Math.round(Math.min(1, g.W/g.Wd)*it.w), vh = Math.round(Math.min(1, g.H/g.Hd)*it.h), ar = (it.w/it.h).toFixed(2);
+  const cx = Math.round(Math.max(0,-g.ox)/g.Wd*it.w), cy = Math.round(Math.max(0,-g.oy)/g.Hd*it.h), eh = Math.round(EW*R);
+  const soft = vw < EW ? `<span class="bad">${vw}px wide → stretched to ${EW}px (may look soft)</span>` : `<span class="ok">${vw}px → ${EW}px, sharp</span>`;
+  $('info').innerHTML = `<span>File</span><span>${it.name}</span><span>Original size</span><span><b>${it.w} × ${it.h} px</b> (${ar} : 1)</span>
+    <span>Visible part</span><span><b>${vw} × ${vh} px</b></span>
+    <span>Crop area</span><span>from x ${cx}, y ${cy} · size ${vw} × ${vh}</span>
+    <span>Export size</span><span><b>${EW} × ${eh} px</b></span><span>Sharpness</span><span>${soft}</span>
+    <span>Fit</span><span>${check(it)}</span>`;
+  $('line').textContent = line(it,cur);
+}
+function line(it,i){
+  const f = `images/${encodeURI(it.name)}`, parts = [`file: "${f}"`, `caption: "${it.cap.replace(/"/g,'\\"')}"`];
+  if(Math.abs(it.z-1)>0.004) parts.push(`zoom: ${+it.z.toFixed(2)}`);
+  if(Math.abs(it.x-50)>0.5) parts.push(`x: ${Math.round(it.x)}`);
+  if(Math.abs(it.y-50)>0.5) parts.push(`y: ${Math.round(it.y)}`);
+  return `    { ${parts.join(', ')} }`;
+}
+['z','x','y'].forEach(k => $(k).oninput = e => { items[cur][k] = +e.target.value; render(); });
+$('cap').oninput = e => { items[cur].cap = e.target.value; $('line').textContent = line(items[cur],cur); };
+$('reset').onclick = () => { Object.assign(items[cur],{z:1,x:50,y:50}); render(); };
+
+let drag = null;
+tile.onpointerdown = e => { const it=items[cur]; if(!it) return; tile.setPointerCapture(e.pointerId); const g=geom(it); drag={px:e.clientX,py:e.clientY,ox:g.ox,oy:g.oy}; };
+tile.onpointermove = e => { if(!drag) return; const it=items[cur], g=geom(it), dx=e.clientX-drag.px, dy=e.clientY-drag.py;
+  if(Math.abs(g.W-g.Wd)>.5) it.x = Math.max(0,Math.min(100,(drag.ox+dx)/(g.W-g.Wd)*100));
+  if(Math.abs(g.H-g.Hd)>.5) it.y = Math.max(0,Math.min(100,(drag.oy+dy)/(g.H-g.Hd)*100)); render(); };
+tile.onpointerup = () => drag = null;
+tile.onwheel = e => { e.preventDefault(); const it=items[cur]; it.z = Math.max(.5,Math.min(3,it.z*Math.exp(-e.deltaY*.0015))); render(); };
+
+const copy = t => navigator.clipboard.writeText(t).catch(()=>{});
+$('copy').onclick = () => copy(line(items[cur],cur)+',');
+$('copyAll').onclick = () => copy(items.map((it,i)=>line(it,i)).join(',\n'));
+$('dl').onclick = () => {
+  const it = items[cur], g = geom(it), k = EW/g.W, c = document.createElement('canvas'); c.width = EW; c.height = Math.round(EW*R);
+  const x = c.getContext('2d');
+  if(it.z<1){ x.filter='blur(24px) brightness(.55)'; const s=Math.max(c.width/it.w,c.height/it.h)*1.25; x.drawImage(it.im,(c.width-it.w*s)/2,(c.height-it.h*s)/2,it.w*s,it.h*s); x.filter='none'; }
+  x.drawImage(it.im, g.ox*k, g.oy*k, g.Wd*k, g.Hd*k);
+  const a = document.createElement('a'); a.href = c.toDataURL('image/jpeg',.92); a.download = it.name.replace(/\.[^.]+$/,'')+'-cropped.jpg'; a.click();
+};
+$('shape').onchange = e => { R = +e.target.value; renderTable(); render(); };
+$('ew').oninput = e => { EW = Math.max(100, Math.min(4000, +e.target.value||900)); renderTable(); render(); };
+addEventListener('resize', render);
+</script>
+</body>
+</html>
