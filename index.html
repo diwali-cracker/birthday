@@ -48,6 +48,7 @@ h2{font-size:1.05rem;margin-bottom:18px}
 #tree-btn.on{opacity:1;pointer-events:auto}
 @media(max-width:700px){#tree-text{max-width:90vw;font-size:.85rem;top:4vh}}
 
+#music-note{position:fixed;bottom:14px;left:50%;translate:-50% 0;z-index:9;display:none;background:#000b;border:1px solid #ff4d5e;color:#fff;border-radius:20px;padding:8px 14px;font:600 12px Montserrat,sans-serif;cursor:pointer;max-width:92vw}
 @media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -63,7 +64,8 @@ h2{font-size:1.05rem;margin-bottom:18px}
   <div class="step glass" id="s-card"><div id="msg"><h1 class="script"></h1><p></p><button class="btn"></button></div></div>
   <div class="step" id="gallery"><h1 class="script"></h1><div class="grid"></div></div>
 </div>
-<audio id="audio" loop></audio>
+<button id="music-note"></button>
+<audio id="audio" loop preload="auto"></audio>
 <script>document.write('<script src="config.js?t='+Date.now()+'"><\/script>')</script>
 <script>
 const C = window.CONFIG, $ = id => document.getElementById(id);
@@ -108,7 +110,12 @@ const go = id => show(id);
 $('s-intro').querySelector('button').onclick = () => { go('tree'); requestAnimationFrame(startTree); };
 $('tree-btn').onclick = () => { stopTree(); go('ready'); };
 $('s-ready').querySelector('button').onclick = () => { $('lights').style.opacity=1; document.body.classList.add('bright'); go('music'); };
-$('s-music').querySelector('button').onclick = () => { $('audio').play().catch(()=>{}); go('balloon'); };
+const au=$('audio'), mnote=$('music-note');
+const musicMsg=t=>{ mnote.textContent=t; mnote.style.display=t?'block':'none'; };
+const playMusic=()=>{ au.play().then(()=>musicMsg('')).catch(e=>musicMsg(e&&e.name==='NotAllowedError'?'♫ Tap here to play the music':'♫ Music not found or not playable – check '+C.music)); };
+au.onerror=()=>musicMsg('♫ Music not found or not playable – check '+C.music);
+mnote.onclick=()=>{ au.load(); playMusic(); };
+$('s-music').querySelector('button').onclick = () => { playMusic(); go('balloon'); };
 $('s-balloon').querySelector('button').onclick = () => { confetti('balloon','',22,9); go('message'); };
 $('s-message').querySelector('button').onclick = () => go('card');
 card.querySelector('button').onclick = () => go('gallery');
