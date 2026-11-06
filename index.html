@@ -23,8 +23,11 @@ h2{font-size:1.05rem;margin-bottom:18px}
 .btn{cursor:pointer;border:1.5px solid #ff4d5e;background:rgba(255,77,94,.08);color:#fff;font:700 .8rem 'Montserrat';letter-spacing:.06em;padding:12px 26px;border-radius:40px;transition:.3s}
 .btn:hover{background:#ff4d5e;box-shadow:0 0 24px #ff4d5e}
 .btn.glow{background:linear-gradient(90deg,#ff5a4d,#ff3d6e);box-shadow:0 0 28px rgba(255,70,90,.7)}
-#msg{width:min(calc(100vw - 100px),540px);font-weight:500;font-size:.85rem;line-height:1.7}
-#msg p{margin:14px 0 20px;white-space:pre-line;text-align:left;max-height:48vh;overflow-y:auto;padding-right:8px}
+#s-card{width:min(94vw,880px);padding:18px 28px}
+#msg{width:100%;font-weight:500;line-height:1.5}
+#msg h1{font-size:clamp(1.9rem,5vw,2.6rem);margin-bottom:2px}
+#msg p{margin:8px 0 14px;font-size:15px;white-space:pre-line;text-align:left}
+#msg .para{display:block;margin-bottom:.55em}
 #gallery{width:min(94vw,820px)}
 #gallery h1{margin-bottom:22px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -48,7 +51,8 @@ h2{font-size:1.05rem;margin-bottom:18px}
 #tree-btn.on{opacity:1;pointer-events:auto}
 @media(max-width:700px){#tree-text{max-width:90vw;font-size:.85rem;top:4vh}}
 
-#music-note{position:fixed;bottom:14px;left:50%;translate:-50% 0;z-index:9;display:none;background:#000b;border:1px solid #ff4d5e;color:#fff;border-radius:20px;padding:8px 14px;font:600 12px Montserrat,sans-serif;cursor:pointer;max-width:92vw}
+#music-note{position:fixed;top:10px;left:50%;translate:-50% 0;z-index:9;display:none;background:#000b;border:1px solid #ff4d5e;color:#fff;border-radius:20px;padding:8px 14px;font:600 12px Montserrat,sans-serif;cursor:pointer;max-width:92vw}
+@media(max-width:560px){#s-card{width:calc(100vw - 20px);padding:14px 14px}}
 @media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -83,7 +87,7 @@ document.title = `${C.title} ${C.name} 🎂`;
 $('s-intro').querySelector('h1').textContent = `${C.title} ${C.name}`;
 [['intro','intro'],['ready','ready'],['music','music'],['balloon','balloon'],['message','message']].forEach(([id,key])=>{
   const s=$('s-'+id), [h,b]=C.steps[key]; (s.querySelector('h2')).textContent=h; s.querySelector('button').textContent=b; });
-const card=$('s-card'); card.querySelector('h1').textContent=C.messageTitle; card.querySelector('p').textContent=C.message; card.querySelector('button').textContent=C.memoriesButton;
+const card=$('s-card'); card.querySelector('h1').textContent=C.messageTitle; (()=>{ const pe=card.querySelector('p'); pe.textContent=''; String(C.message).trim().split(/\n\s*\n/).forEach(t=>{ const sp=document.createElement('span'); sp.className='para'; sp.textContent=t.trim(); pe.appendChild(sp); }); })(); card.querySelector('button').textContent=C.memoriesButton;
 $('gallery').querySelector('h1').textContent=C.galleryTitle;
 // Gallery: optional per-photo zoom (1 = fill the box, <1 zoom out, >1 zoom in) and focus x/y in % (50 = centre)
 (function buildGallery(){
@@ -91,31 +95,46 @@ $('gallery').querySelector('h1').textContent=C.galleryTitle;
   C.photos.forEach(p=>{
     const el=document.createElement('div'); el.className='ph'; grid.appendChild(el);
     const cap=document.createElement('span'); cap.textContent=p.caption; el.appendChild(cap);
-    const im=new Image();
-    im.onload=()=>{
-      const z=p.zoom||1, x=p.x??50, y=p.y??50, r=im.naturalHeight/im.naturalWidth, cover=Math.max(1,(4/3)/r)*100;
-      const url='url("'+p.file+'")';
+    const m=p.file.match(/\.[A-Za-z0-9]+$/), base=m?p.file.slice(0,-m[0].length):p.file;
+    const exts=[m?m[0]:'.jpeg','.jpeg','.jpg','.JPG','.JPEG','.png','.PNG','.webp']; let k=0;
+    const show=(im,u)=>{
+      const z=p.zoom||1, x=p.x??50, y=p.y??50, r=im.naturalHeight/im.naturalWidth, cover=Math.max(1,(4/3)/r)*100, url='url("'+u+'")';
       if(z<1){ const b=document.createElement('div'); b.className='bgl'; b.style.backgroundImage=url; el.insertBefore(b,cap); }
       const f=document.createElement('div'); f.className='fgl'; f.style.backgroundImage=url;
       f.style.backgroundSize=(cover*z)+'% auto'; f.style.backgroundPosition=x+'% '+y+'%'; el.insertBefore(f,cap);
     };
-    im.src=p.file;
+    const next=()=>{
+      if(k>=exts.length){ cap.textContent='Photo not found: '+p.file; cap.style.opacity=1; cap.style.fontSize='12px'; cap.style.fontFamily='Montserrat,sans-serif'; return; }
+      const u=base+exts[k++], im=new Image(); im.onload=()=>show(im,u); im.onerror=next; im.src=u;
+    };
+    next();
   });
 })();
 $('audio').src = C.music;
 for(let i=0;i<28;i++){const l=document.createElement('i'); l.style.setProperty('--s',Math.sin(i/28*Math.PI*6)); $('lights').appendChild(l);}
 
 // Flow
-const go = id => show(id);
+function fitCard(){
+  const p=card.querySelector('p'), box=$('s-card'), avail=innerHeight*.94;
+  p.style.maxHeight='none'; p.style.overflowY='visible';
+  let fs=17; p.style.fontSize=fs+'px';
+  while(fs>8.5 && box.offsetHeight>avail){ fs-=.5; p.style.fontSize=fs+'px'; }
+  if(box.offsetHeight>avail){ p.style.maxHeight=Math.max(80,p.clientHeight-(box.offsetHeight-avail))+'px'; p.style.overflowY='auto'; }
+}
+const go = id => { show(id); if(id==='card') fitCard(); };
+addEventListener('resize',fitCard); fitCard(); if(document.fonts) document.fonts.ready.then(fitCard);
 $('s-intro').querySelector('button').onclick = () => { go('tree'); requestAnimationFrame(startTree); };
 $('tree-btn').onclick = () => { stopTree(); go('ready'); };
 $('s-ready').querySelector('button').onclick = () => { $('lights').style.opacity=1; document.body.classList.add('bright'); go('music'); };
 const au=$('audio'), mnote=$('music-note');
 const musicMsg=t=>{ mnote.textContent=t; mnote.style.display=t?'block':'none'; };
 const playMusic=()=>{ au.play().then(()=>musicMsg('')).catch(e=>musicMsg(e&&e.name==='NotAllowedError'?'♫ Tap here to play the music':'♫ Music not found or not playable – check '+C.music)); };
-au.onerror=()=>musicMsg('♫ Music not found or not playable – check '+C.music);
+let triedAlt=false, wantPlay=false;
+au.onerror=()=>{ if(!triedAlt){ triedAlt=true; const alt=C.music.replace(/\.(mp3|MP3)$/,m=>m==='.mp3'?'.MP3':'.mp3');
+    if(alt!==C.music){ au.src=alt; au.load(); if(wantPlay) playMusic(); return; } }
+  musicMsg('♫ Music not found or not playable – check '+C.music); };
 mnote.onclick=()=>{ au.load(); playMusic(); };
-$('s-music').querySelector('button').onclick = () => { playMusic(); go('balloon'); };
+$('s-music').querySelector('button').onclick = () => { wantPlay=true; playMusic(); go('balloon'); };
 $('s-balloon').querySelector('button').onclick = () => { confetti('balloon','',22,9); go('message'); };
 $('s-message').querySelector('button').onclick = () => go('card');
 card.querySelector('button').onclick = () => go('gallery');
