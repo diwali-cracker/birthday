@@ -48,11 +48,11 @@ Happy Birthday, my favourite person MG, my bby, my love. I love you more than wo
   // Gallery: put photos in the /images folder and list them here (6 looks best, add as many as you like)
   galleryTitle: "Moments in Time",
   photos: [
-    { file: "images/1.jpeg", caption: "You make my world beautiful" },
-    { file: "images/2.jpeg", caption: "Our memories are forever" },
-    { file: "images/3.jpeg", caption: "That smile ❤" },
-    { file: "images/4.jpeg", caption: "Your Fan" },
-    { file: "images/5.jpeg", caption: "A Sunflower" },
-    { file: "images/6.jpeg", caption: "Always and forever" }
+        { file: "images/1.jpeg", caption: "You make my world beautiful", zoom: 1.57, x: 51, y: 89 },,
+        { file: "images/2.jpeg", caption: "Our memories are forever", zoom: 0.58, x: 42, y: 52 },,
+     { file: "images/3.jpeg", caption: "That smile ❤", zoom: 1.16, x: 12, y: 69 },
+        { file: "images/4.jpeg", caption: "Your Fan", zoom: 1.35, x: 62 },,
+     { file: "images/5.jpeg", caption: "My Sunflower", zoom: 1.82, x: 32, y: 61 },
+     { file: "images/6.jpeg", caption: "Always and forever", zoom: 0.5, x: 74, y: 51 }
   ]
 };
